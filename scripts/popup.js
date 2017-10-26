@@ -1,7 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     var checkPageButton = document.getElementById('cl');
     checkPageButton.addEventListener('click', function() {
-      $.get("https://api.trello.com/1/lists/59ede17bf56387cc316c98f8/cards?actions=commentCard&key=713ac2e39493aed425ac298cba624de4&token=19edbfbddc426811dffe535365752bbc9163cd29f3cf9467eaf1f45d5ca09fc4",
+        //Para buscar todas listas
+        //https://api.trello.com/1/boards/Cm1VvpPQ?fields=id,name&lists=open&list_fields=id,name,closed,pos&key=175bab29d30ac5c2db6f9b9de3de5b4b&token=b7f75def67760a80d454cf834ff6414fc75d5f4342662927fd0cec6c0af5c9c8
+      $.get("https://api.trello.com/1/lists/5811dd0416356cda5996a190/cards?actions=commentCard&key=175bab29d30ac5c2db6f9b9de3de5b4b&token=b7f75def67760a80d454cf834ff6414fc75d5f4342662927fd0cec6c0af5c9c8",
                 function(datas){
         /* original data */
         var data = [
