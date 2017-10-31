@@ -1,12 +1,20 @@
 var url = "https://api.trello.com";
 var key = "bffdd838fd24b5832de6f72e47987533";
 var token = "685daea308b5bff7e3d2da00807bcb34a12f1e24685928fc444acb0875d01429";
+var reader = new FileReader();
+var xls = XLSX;
+var wb = {
+    "Sheets": {},
+    "Props": {},
+    "SSF": {},
+    "SheetNames": []
+};
 
 
 document.addEventListener('DOMContentLoaded', function() {
     var checkPageButton = document.getElementById('cl');
     checkPageButton.addEventListener('click', function() {
-        getColumns("cns49FIZ");
+        getColumns("Cm1VvpPQ");
     }, false);
 }, false);
 
@@ -32,73 +40,83 @@ function getColumns(idTrello){
         success : (data) => {
             if(!data) return;
             data.lists.forEach(function(item) {
-                console.log(item);
-                getItensColum(item);
+                wb.SheetNames.push(item.name);
+                getItensColum(item, item.name);
             });
+            exportExcel();
         }
     });
 }
 
-function getItensColum(colum){
+function getItensColum(colum, wsName){
     $.ajax({
         url : url + "/1/lists/"+ colum.id +"/cards?actions=commentCard&key=" + key +"&token=" + token,
         type : "get",
         async: false,
         success : (data) => {
-            console.log(data);
-            // exportExcel(data, colum);
+            gerarSheets(data, wsName)
         }
     });
 }
 
-function exportExcel(itensColumns, colum){
-    var reader = new FileReader();
-    var xls = XLSX;
+function gerarSheets(itensColumns, wsName){
     var ws = {};
-    var ws_name = colum.name;
-    var wb = {
-        "Sheets": {},
-        "Props": {},
-        "SSF": {},
-        "SheetNames": []
-    };
-
-    var cellRefTit = xls.utils.encode_cell({ c: 0, r: 0 });
-    ws[cellRefTit] = "Descrição";
-
-    cellRefTit = xls.utils.encode_cell({ c: 1, r: 0 });
-    ws[cellRefTit] = "Email enviado";
-
-    cellRefTit = xls.utils.encode_cell({ c: 2, r: 0 });
-    ws[cellRefTit] = "Orçamento enviado";
-
-    cellRefTit = xls.utils.encode_cell({ c: 3, r: 0 });
-    ws[cellRefTit] = "Escopo aprovado";
+    var rang = { s: {c:0, r:0}, e: {c:0, r:0 } };
+    var titulos = ["Descrição","Email enviado","Orçamento enviado","Escopo aprovado"];
     
-    var rang = { cell: 0, row: 0 };
-    itensColumns.forEach((itemColum) => {
+    for (var i = 0; i < titulos.length; i++) {
+        var cell = { v: "", t: "" };
+        if(rang.e.c < i) rang.e.c = i;
+        cell.v = titulos[i];
+        var cellRefTit = xls.utils.encode_cell({ c: rang.e.c, r: rang.e.r });
+        ws[cellRefTit] = verificaCell(cell);
+    }
+   
+    itensColumns.forEach((item, index) => {
         //descri
-        var cell_ref = xls.utils.encode_cell({ c: 0, r: rang.row });
-        ws[cell_ref] = item.name;
+        var cell = { v: "", t: "" };
+        if(rang.e.r < index) rang.e.r = index;
+        cell.v = item.name;
+        var cell_ref = xls.utils.encode_cell({ c: 0, r: rang.e.r + 1 });
+        ws[cell_ref] = verificaCell(cell);
         
         //teste
         var tests = [
-            { r: /Email enviado/, cell: 1, qtd: 0 },
-            { r: /Orçamento enviado/, cell: 2, qtd: 0 },
-            { r: /Escopo aprovado/, cell: 3, qtd: 0 },
-            { r: /teste/, cell: 4, qtd: 0 }
+            { r: /Email enviado/, cell: 1 },
+            { r: /Orçamento enviado/, cell: 2 },
+            { r: /Escopo aprovado/, cell: 3 },
+            { r: /teste/, cell: 4 }
         ];
 
-        if(item.actions == null || item.actions.length == 0) continue;
+        if(item.actions == null || item.actions.length == 0) return;
         item.actions.forEach((action) => {
+            var cell = { v: "", t: "" };
             tests.forEach((test) => {
-                if(test.exec(action.data.text).length){
-                    test.qtd++;
-                    //gambiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
-                    var cellRefTest = xls.utils.encode_cell({ c: test.cell, r: rang.row });
-                    ws[cellRefTest] = test.qtd;
+                var regex = test.r.exec(action.data.text);
+                if(regex != null && regex.length){
+                    cell.v = action.data.text;
+                    var cellRefTest = xls.utils.encode_cell({ c: test.cell, r: rang.e.r + 1 });
+                    ws[cellRefTest] = verificaCell(cell);
                 }
             });
         });
     });
+    ws['!ref'] = xls.utils.encode_range(rang);
+    wb.Sheets[wsName] = ws;
+}
+
+function exportExcel(){
+    var wbout = xls.write(wb, {bookType:"xlsx", bookSST:true, type: 'binary'});
+    var blob = new Blob([s2ab(wbout)],{type:"application/octet-stream"});
+    var URL = window.URL || window.webkitURL;
+    var downloadUrl = URL.createObjectURL(blob);
+    chrome.downloads.download({url:downloadUrl, filename:"teste.xlsx"},function(id) { });
+} 
+
+function verificaCell(cell){
+    if(typeof cell.v === 'number') cell.t = 'n';
+    else if(typeof cell.v === 'boolean') cell.t = 'b';
+    else cell.t = 's';
+
+    return cell;
 }
