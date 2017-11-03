@@ -12,7 +12,7 @@
       "scripts/cpexcel.js",
       "scripts/shim.js",
       "scripts/jszip.js",
-      "scripts/xlsx.js",
+      "scripts/xlsx.core.min.js",
       "scripts/jquery-3.2.1.min.js"
     ]
   },

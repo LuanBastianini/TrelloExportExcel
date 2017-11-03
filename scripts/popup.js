@@ -74,9 +74,19 @@ function gerarSheets(itensColumns, wsName){
    
     itensColumns.forEach((item, index) => {
         //descri
-        var cell = { v: "", t: "" };
+        var cell = { v: "", 
+                     t: "",
+                    //   s: {
+                    //    top:{style: "medium", color: { rgb: "FFFFAA00" }},
+                    //    bottom:{style: "medium", color: { rgb: "FFFFAA00" }},
+                    //    left:{style: "medium", color: { rgb: "FFFFAA00" }},
+                    //    right:{style: "medium", color: { rgb: "FFFFAA00" }}
+                    // } 
+                };
+
         if(rang.e.r < index) rang.e.r = index;
         cell.v = item.name;
+        //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
         var cell_ref = xls.utils.encode_cell({ c: 0, r: rang.e.r + 1 });
         ws[cell_ref] = verificaCell(cell);
         
@@ -90,23 +100,32 @@ function gerarSheets(itensColumns, wsName){
 
         if(item.actions == null || item.actions.length == 0) return;
         item.actions.forEach((action) => {
-            var cell = { v: "", t: "" };
+            cell = { v: "", t: "" };
             tests.forEach((test) => {
                 var regex = test.r.exec(action.data.text);
                 if(regex != null && regex.length){
                     cell.v = action.data.text;
+                    //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
                     var cellRefTest = xls.utils.encode_cell({ c: test.cell, r: rang.e.r + 1 });
                     ws[cellRefTest] = verificaCell(cell);
                 }
             });
         });
     });
+    var wscols = [
+        {wch: 80},
+        {wch: 30},
+        {wch: 30},
+        {wch: 30}
+    ];
+
     ws['!ref'] = xls.utils.encode_range(rang);
+    ws['!cols'] = wscols;
     wb.Sheets[wsName] = ws;
 }
 
 function exportExcel(){
-    var wbout = xls.write(wb, {bookType:"xlsx", bookSST:true, type: 'binary'});
+    var wbout = xls.write(wb, {bookType:"xlsx", bookSST:true, type: 'binary', cellStyles: true});
     var blob = new Blob([s2ab(wbout)],{type:"application/octet-stream"});
     var URL = window.URL || window.webkitURL;
     var downloadUrl = URL.createObjectURL(blob);
