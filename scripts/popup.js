@@ -94,8 +94,7 @@ function gerarSheets(itensColumns, wsName){
         var tests = [
             { r: /Email enviado/, cell: 1 },
             { r: /Orçamento enviado/, cell: 2 },
-            { r: /Escopo aprovado/, cell: 3 },
-            { r: /teste/, cell: 4 }
+            { r: /Escopo aprovado/, cell: 3 }
         ];
 
         if(item.actions == null || item.actions.length == 0) return;
@@ -104,7 +103,12 @@ function gerarSheets(itensColumns, wsName){
             tests.forEach((test) => {
                 var regex = test.r.exec(action.data.text);
                 if(regex != null && regex.length){
-                    cell.v = action.data.text;
+                    try {
+                        cell.v = /\d{2}[/]\d{2}[/]\d{4}/.exec(action.data.text)[0];
+                    }
+                    catch (e) {
+                        cell.v = "";
+                    }
                     //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
                     var cellRefTest = xls.utils.encode_cell({ c: test.cell, r: rang.e.r + 1 });
                     ws[cellRefTest] = verificaCell(cell);
