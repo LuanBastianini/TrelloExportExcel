@@ -103,12 +103,8 @@ function gerarSheets(itensColumns, wsName){
             tests.forEach((test) => {
                 var regex = test.r.exec(action.data.text);
                 if(regex != null && regex.length){
-                    try {
-                        cell.v = /\d{2}[/]\d{2}[/]\d{4}/.exec(action.data.text)[0];
-                    }
-                    catch (e) {
-                        cell.v = "";
-                    }
+                    var data = /\d{2}[/]\d{2}[/]\d{4}/.exec(action.data.text);
+                    cell.v = data ? data[0] : "";
                     //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
                     var cellRefTest = xls.utils.encode_cell({ c: test.cell, r: rang.e.r + 1 });
                     ws[cellRefTest] = verificaCell(cell);
