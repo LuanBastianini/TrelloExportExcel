@@ -10,7 +10,6 @@ var wb = {
     "SheetNames": []
 };
 
-
 document.addEventListener('DOMContentLoaded', function() {
     var checkPageButton = document.getElementById('cl');
     checkPageButton.addEventListener('click', function() {
@@ -62,8 +61,21 @@ function getItensColum(colum, wsName){
 function gerarSheets(itensColumns, wsName){
     var ws = {};
     var rang = { s: {c:0, r:0}, e: {c:0, r:0 } };
-    var titulos = ["Descrição","Email enviado","Orçamento enviado","Escopo aprovado"];
-    
+    var titulos = ["Descrição",
+                    "Status",
+                    "Responsável", 
+                    "Data Prevista", 
+                    "Observações", 
+                    "Data Solicitação", 
+                    "Data Envio Escopo",
+                    "Data Aprovação Escopo", 
+                    "Data Envio Orçamento", 
+                    "Data Aprovação Orçamento",
+                    "Data Inicio Desenvolvimento",
+                    "Data Fim Desenvolvimento",
+                    "Data Inicio Homologação",
+                    "Data Fim Homologação"];
+
     for (var i = 0; i < titulos.length; i++) {
         var cell = { v: "", t: "" };
         if(rang.e.c < i) rang.e.c = i;
@@ -71,11 +83,11 @@ function gerarSheets(itensColumns, wsName){
         var cellRefTit = xls.utils.encode_cell({ c: rang.e.c, r: rang.e.r });
         ws[cellRefTit] = verificaCell(cell);
     }
-   
+    
     itensColumns.forEach((item, index) => {
         //descri
         var cell = { v: "", 
-                     t: "",
+                        t: "",
                     //   s: {
                     //    top:{style: "medium", color: { rgb: "FFFFAA00" }},
                     //    bottom:{style: "medium", color: { rgb: "FFFFAA00" }},
@@ -89,15 +101,46 @@ function gerarSheets(itensColumns, wsName){
         //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
         var cell_ref = xls.utils.encode_cell({ c: 0, r: rang.e.r + 1 });
         ws[cell_ref] = verificaCell(cell);
+
+        // cell = { v: "", t: "" };
+        // cell.v = wsName;
+        // //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
+        // var cell_ref = xls.utils.encode_cell({ c: 1, r: rang.e.r + 1 });
+        // ws[cell_ref] = verificaCell(cell);
+
+        var nomeResp = "";
+        item.labels.forEach((resp) => {
+            nomeResp += resp.name + ","
+        });
+        cell = { v: "", t: "" };
+        cell.v = nomeResp
+        //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
+        var cell_ref = xls.utils.encode_cell({ c: 2, r: rang.e.r + 1 });
+        ws[cell_ref] = verificaCell(cell);
+
+        var dataPrev = item.due ? new Date(item.due) : null;
+        cell = { v: "", t: "" };
+        cell.v = !dataPrev ? "-" : dataPrev.getDate() + "/" + dataPrev.getMonth() + "/"+ dataPrev.getFullYear();
+        //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
+        var cell_ref = xls.utils.encode_cell({ c: 3, r: rang.e.r + 1 });
+        ws[cell_ref] = verificaCell(cell);
         
         //teste
         var tests = [
-            { r: /Email enviado/, cell: 1 },
-            { r: /Orçamento enviado/, cell: 2 },
-            { r: /Escopo aprovado/, cell: 3 }
+            { r: /@observação/, cell: 4 },
+            { r: /@solicitação/, cell: 5 },
+            { r: /@envioEscopo/, cell: 6 },
+            { r: /@aprovaEscopo/, cell: 7 },
+            { r: /@envioOrçamento/, cell: 8 },
+            { r: /@aprovaOrçamento/, cell: 9 },
+            { r: /@inicioDesenvolvimento/, cell: 10 },
+            { r: /@fimDesenvolvimento/, cell: 11 },
+            { r: /@inicioHomologacao/, cell: 12 },
+            { r: /@fimHomologação/, cell: 13 }
         ];
 
         if(item.actions == null || item.actions.length == 0) return;
+        
         item.actions.forEach((action) => {
             cell = { v: "", t: "" };
             tests.forEach((test) => {
@@ -114,15 +157,26 @@ function gerarSheets(itensColumns, wsName){
     });
     var wscols = [
         {wch: 80},
-        {wch: 30},
-        {wch: 30},
-        {wch: 30}
-    ];
-
-    ws['!ref'] = xls.utils.encode_range(rang);
-    ws['!cols'] = wscols;
-    wb.Sheets[wsName] = ws;
+        {wch: 50},
+        {wch: 20},
+        {wch: 20},
+        {wch: 20},
+        {wch: 20},
+        {wch: 20},
+        {wch: 20},
+        {wch: 20},
+        {wch: 20},
+        {wch: 20},
+        {wch: 20},
+        {wch: 20},
+        {wch: 20},
+        ];
+    
+        ws['!ref'] = xls.utils.encode_range(rang);
+        ws['!cols'] = wscols;
+        wb.Sheets[wsName] = ws;
 }
+
 
 function exportExcel(){
     var wbout = xls.write(wb, {bookType:"xlsx", bookSST:true, type: 'binary', cellStyles: true});
