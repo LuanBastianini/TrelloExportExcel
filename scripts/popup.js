@@ -96,12 +96,12 @@ function gerarSheets(itensColumns, wsName){
                     // } 
                 };
 
-        if(rang.e.r < index) rang.e.r = index;
+        if(rang.e.r <= index) rang.e.r = index + 1;
         cell.v = item.name;
         //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
-        var cell_ref = xls.utils.encode_cell({ c: 0, r: rang.e.r + 1 });
+        var cell_ref = xls.utils.encode_cell({ c: 0, r: rang.e.r });
         ws[cell_ref] = verificaCell(cell);
-
+                console.log(item.name + " " + rang.e.r);
         // cell = { v: "", t: "" };
         // cell.v = wsName;
         // //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
@@ -115,14 +115,14 @@ function gerarSheets(itensColumns, wsName){
         cell = { v: "", t: "" };
         cell.v = nomeResp
         //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
-        var cell_ref = xls.utils.encode_cell({ c: 2, r: rang.e.r + 1 });
+        var cell_ref = xls.utils.encode_cell({ c: 2, r: rang.e.r});
         ws[cell_ref] = verificaCell(cell);
 
         var dataPrev = item.due ? new Date(item.due) : null;
         cell = { v: "", t: "" };
         cell.v = !dataPrev ? "-" : dataPrev.getDate() + "/" + dataPrev.getMonth() + "/"+ dataPrev.getFullYear();
         //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
-        var cell_ref = xls.utils.encode_cell({ c: 3, r: rang.e.r + 1 });
+        var cell_ref = xls.utils.encode_cell({ c: 3, r: rang.e.r });
         ws[cell_ref] = verificaCell(cell);
         
         //teste
@@ -138,22 +138,27 @@ function gerarSheets(itensColumns, wsName){
             { r: /@inicioHomologacao/, cell: 12 },
             { r: /@fimHomologação/, cell: 13 }
         ];
-
+        var obs = "";
         if(item.actions == null || item.actions.length == 0) return;
-        
         item.actions.forEach((action) => {
             cell = { v: "", t: "" };
             tests.forEach((test) => {
                 var regex = test.r.exec(action.data.text);
                 if(regex != null && regex.length){
-                    var data = /\d{2}[/]\d{2}[/]\d{4}/.exec(action.data.text);
-                    cell.v = data ? data[0] : "";
+                    if(test.cell == 4){
+                        obs += obs ? action.data.text.split(test.r) + "\n" : "" + action.data.text.split(test.r) ;
+                        cell.v = obs;
+                    }else{
+                        var data = /\d{2}[/]\d{2}[/]\d{4}/.exec(action.data.text);
+                        cell.v = data ? data[0] : "";
+                    }
                     //cell.s = { font: {sz: 16, bold: true, color: { rgb: "FFFFAA00" }} };
-                    var cellRefTest = xls.utils.encode_cell({ c: test.cell, r: rang.e.r + 1 });
+                    var cellRefTest = xls.utils.encode_cell({ c: test.cell, r: rang.e.r});
                     ws[cellRefTest] = verificaCell(cell);
                 }
             });
         });
+        obs = "";
     });
     var wscols = [
         {wch: 80},
@@ -171,7 +176,7 @@ function gerarSheets(itensColumns, wsName){
         {wch: 20},
         {wch: 20},
         ];
-    
+
         ws['!ref'] = xls.utils.encode_range(rang);
         ws['!cols'] = wscols;
         wb.Sheets[wsName] = ws;
